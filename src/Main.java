@@ -14,25 +14,15 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Simulation sim = new Simulation();
 
-        //  Get potential properties file name
-        String propFile = sim.getPropFileName();
+        String fileName = sim.getPropFileName();
+        if(sim.isHasPropFile()) {
+            Properties prop = sim.readFile(fileName);
 
-        if(sim.isHasPropFile()){
-            try {
-                Properties properties = sim.readFile(propFile);
-
-                //  Once open, set all properties as specified in file
-                sim.setStructures(properties.getProperty("structures"));
-                sim.setFloors(Integer.parseInt(properties.getProperty("floors")));
-                sim.setPassengers(Float.parseFloat(properties.getProperty("passengers")));
-                sim.setElevators(Integer.parseInt(properties.getProperty("elevators")));
-                sim.setElevatorCapacity(Integer.parseInt(properties.getProperty("elevatorCapacity")));
-                sim.setDuration(Integer.parseInt(properties.getProperty("duration")));
-            }
-            catch (IOException ioe){
-                ioe.printStackTrace();
-            }
+            sim.startSim(prop);
         }
-
+        else {
+            sim.startSim();
+        }
+        System.out.println("Success!");
     }
 }
