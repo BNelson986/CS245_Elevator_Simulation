@@ -7,7 +7,15 @@ public class Main {
      */
 
     public static void main(String[] args) throws Exception {
-        Simulation sim = new Simulation();
+        Simulation sim;
+
+        //  Check for properties file argument
+        if(args.length > 0){
+            sim = new Simulation(args[0]);
+        }
+        else{
+            sim = new Simulation();
+        }
 
         sim.startSim();
 
