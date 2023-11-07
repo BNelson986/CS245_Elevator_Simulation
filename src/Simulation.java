@@ -1,10 +1,6 @@
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
 
 public class Simulation {
     /*
@@ -43,13 +39,70 @@ public class Simulation {
     Simulation (String fileName) throws IOException {
         Properties prop = readFile(fileName);
 
-        //  With presence of properties file, set all properties from file
-        setStructures(prop.getProperty("structures"));
-        setFloors(Integer.parseInt(prop.getProperty("floors")));
-        setPassengers(Float.parseFloat(prop.getProperty("passengers")));
-        setElevators(Integer.parseInt(prop.getProperty("elevators")));
-        setElevatorCapacity(Integer.parseInt(prop.getProperty("elevatorCapacity")));
-        setDuration(Integer.parseInt(prop.getProperty("duration")));
+        //  With presence of properties file, check for properties from file
+        //  If individual property not present or found, use defaults
+
+        if (prop.getProperty("structures") == null) {
+            System.out.println("Structures property not found. Using default value.");
+        }
+        else {
+            String tempStruct = prop.getProperty("structures");
+
+            //  If valid property value, set it otherwise use default value
+            if (tempStruct.matches("linked") || tempStruct.matches("array")) {
+                setStructures(tempStruct);
+            }
+        }
+        if (prop.getProperty("floors") == null) {
+            System.out.println("Floors property not found. Using default value.");
+        }
+        else {
+            int tempFloors = Integer.parseInt(prop.getProperty("floors"));
+
+            if (tempFloors >= 1) {
+                setFloors(tempFloors);
+            }
+        }
+        if (prop.getProperty("passengers") == null) {
+            System.out.println("Passengers property not found. Using default value.");
+        }
+        else {
+            float tempPass = Float.parseFloat(prop.getProperty("passengers"));
+
+            if (tempPass >= 0f && tempPass <= 1.00f) {
+                setPassengers(tempPass);
+            }
+        }
+        if (prop.getProperty("elevators") == null) {
+            System.out.println("Elevators property not found. Using default value.");
+        }
+        else {
+            int tempElev = Integer.parseInt(prop.getProperty("elevators"));
+
+            if (tempElev >= 1) {
+                setElevators(tempElev);
+            }
+        }
+        if (prop.getProperty("elevatorCapacity") == null) {
+            System.out.println("Elevator capacity property not found. Using default value.");
+        }
+        else {
+            int tempElevCap = Integer.parseInt(prop.getProperty("elevatorCapacity"));
+
+            if (tempElevCap >= 1) {
+                setElevatorCapacity(tempElevCap);
+            }
+        }
+        if (prop.getProperty("duration") == null) {
+            System.out.println("Duration property not found. Using default value.");
+        }
+        else {
+            int tempDuration = Integer.parseInt(prop.getProperty("duration"));
+
+            if (tempDuration >= 1) {
+                setDuration(tempDuration);
+            }
+        }
     }
 
     /**
@@ -77,13 +130,14 @@ public class Simulation {
 
         inFile = new FileInputStream(fileName);
         properties = new Properties();
+
         try {
             properties.load(inFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            inFile.close();
         }
-
-        inFile.close();
 
         return properties;
     }
@@ -596,6 +650,40 @@ public class Simulation {
     }
 
     /**
+     * Simulation.Passenger class used to represent individual passengers
+     * created on each floor during each tick. Destination floor
+     * and Starting floor must be different.
+     */
+    private static class Passenger {
+        private final int destFloor;
+        private final long arrivalTime;
+
+        public Passenger (int dest) {
+            destFloor = dest;
+            arrivalTime = System.currentTimeMillis();
+        }
+
+        public long getArrivalTime () {
+            return arrivalTime;
+        }
+
+        /**
+         * Given the current floor, return whether
+         * passenger is going up or down to determine
+         * if they are allowed to get on the elevator
+         *
+         * @param currFloor floor the passenger is on
+         * @return 'U' for Up, 'D' for Down
+         */
+        public char direction (int currFloor) {
+            if (this.destFloor > currFloor) {
+                return 'U';
+            }
+            return 'D';
+        }
+    }
+
+    /**
      * Simulation.Elevator class used to represent a simulated elevator
      * can move up and down between floors to pick up and drop off
      * Simulation.Passenger objects
@@ -739,40 +827,6 @@ public class Simulation {
         private void moveDown (int floor) {
             setDirection('D');
             currentFloor = floor;
-        }
-    }
-
-    /**
-     * Simulation.Passenger class used to represent individual passengers
-     * created on each floor during each tick. Destination floor
-     * and Starting floor must be different.
-     */
-    private static class Passenger {
-        private final int destFloor;
-        private final long arrivalTime;
-
-        public Passenger (int dest) {
-            destFloor = dest;
-            arrivalTime = System.currentTimeMillis();
-        }
-
-        public long getArrivalTime () {
-            return arrivalTime;
-        }
-
-        /**
-         * Given the current floor, return whether
-         * passenger is going up or down to determine
-         * if they are allowed to get on the elevator
-         *
-         * @param currFloor floor the passenger is on
-         * @return 'U' for Up, 'D' for Down
-         */
-        public char direction (int currFloor) {
-            if (this.destFloor > currFloor) {
-                return 'U';
-            }
-            return 'D';
         }
     }
 }
