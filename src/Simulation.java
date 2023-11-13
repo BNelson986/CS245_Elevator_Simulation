@@ -8,8 +8,9 @@ public class Simulation {
      *  Fields  *
      ************
      */
-    private List<List<Passenger>> floor;
+    private List<Floor> floor;
     private List<Elevator> elevator;
+
     private List<Long> timeToDest;
 
     /*
@@ -49,7 +50,7 @@ public class Simulation {
             String tempStruct = prop.getProperty("structures");
 
             //  If valid property value, set it otherwise use default value
-            if (tempStruct.matches("linked") || tempStruct.matches("array")) {
+            if (tempStruct.equalsIgnoreCase("linked") || tempStruct.equalsIgnoreCase("array")) {
                 setStructures(tempStruct);
             }
         }
@@ -153,11 +154,10 @@ public class Simulation {
         Random rand = new Random(System.currentTimeMillis());
 
         //  Set all structures to specified structure
-        if (getStructures().matches("linked")) {
+        if (getStructures().equalsIgnoreCase("linked")) {
             floor = new LinkedList<>();
             for (int i = 0; i < getFloors(); i++) {
-                List<Passenger> linkedList = new LinkedList<>();
-                floor.add(linkedList);
+                floor.add(new Floor());
             }
 
             elevator = new LinkedList<>();
@@ -167,14 +167,14 @@ public class Simulation {
 
             timeToDest = new LinkedList<>();
         }
-        else if (getStructures().matches("array")) {
+        else if (getStructures().equalsIgnoreCase("array")) {
             floor = new ArrayList<>();
             elevator = new ArrayList<>();
+
             timeToDest = new ArrayList<>();
 
             for (int i = 0; i < getFloors(); i++) {
-                List<Passenger> arrayList = new ArrayList<>();
-                floor.add(arrayList);
+                floor.add(new Floor());
             }
             for (int i = 0; i < getElevators(); i++) {
                 elevator.add(new Elevator(getStructures()));
@@ -233,7 +233,7 @@ public class Simulation {
                         destFloor = rand.nextInt(getFloors());
                     }
 
-                    floor.get(f).add(new Passenger(destFloor));
+                    floor.get(f).add(new Passenger(destFloor, f));
 
                     firstPassenger = true;
                 }
@@ -263,8 +263,15 @@ public class Simulation {
                  *  UNCOMMENT THE FOLLOWING LINES TO TEST PROPER FUNCTIONALITY  *
                  ****************************************************************
                  */
-
             /*
+                for(int e = 0 ; e < getElevators(); e++) {
+                    if (ticksLeft % 25 == 0) {
+                        System.out.println("Elevator: " + e + " currently has " + elevator.get(e).passengers.size() + " passengers.");
+                        for (Passenger passenger : elevator.get(e).passengers){
+                            System.out.println("Start Floor: " + passenger.startFloor + " Dest Floor: " + passenger.destFloor);
+                        }
+                    }
+                }
                 //  Check for over capacity
                 if(elevator.get(i).passengers.size() > getElevatorCapacity()){
                     System.out.println("Elevator " + i + " is over capacity");
@@ -272,7 +279,7 @@ public class Simulation {
 
                 //  Check for passenger not at destination floor and going in wrong direction
                 for(Simulation.Passenger passenger : elevator.get(i).passengers){
-                    if(passenger.direction(elevator.get(i).getCurrentFloor()) != elevator.get(i).getDirection() &&
+                    if(passenger.direction() != elevator.get(i).getDirection() &&
                         passenger.destFloor != elevator.get(i).getCurrentFloor()){
                         System.out.println("Simulation.Passenger on Elevator: " + i + " is going the wrong direction.");
                         System.out.println("Simulation.Passenger: " + passenger +
@@ -290,15 +297,14 @@ public class Simulation {
                     System.out.println("Elevator: " + i + " is out of bounds. (HIGH)");
                 }
             */
-
             }
         }
 
         //  UNCOMMENT TO SEE TOTAL PASSENGERS SERVICED
-        /*
+
         int totalPassengers = timeToDest.size();
         System.out.println("Total passengers serviced by " + elevators + " elevator(s): " + totalPassengers);
-        */
+
 
         //  Perform data analysis/collection after successful execution
         long avgTime = getAvgTimeToDest(timeToDest);
@@ -460,12 +466,11 @@ public class Simulation {
      * from the floor can get on
      */
     private boolean hasPickUps (int currFloor, char elevDirection) {
-        for (Passenger pass : floor.get(currFloor)) {
-            if (pass.direction(currFloor) == elevDirection) {
-                return true;
-            }
-        }
-        return false;
+        return switch (elevDirection) {
+            case 'U' -> !floor.get(currFloor).up.isEmpty();
+            case 'D' -> !floor.get(currFloor).down.isEmpty();
+            default -> false;
+        };
     }
 
     /**
@@ -480,44 +485,18 @@ public class Simulation {
      * @param elevDirection direction elevator is moving
      */
     private void pickUp (int currFloor, int i, char elevDirection) {
-        List<Passenger> toRemove;
 
-        if (getStructures().matches("linked")) {
-            toRemove = new LinkedList<>();
+        switch (elevDirection) {
+            case 'U':
+                while (!elevator.get(i).isFull() && !floor.get(currFloor).up.isEmpty()) {
+                    elevator.get(i).add(floor.get(currFloor).up.remove());
+                }
+                return;
+            case 'D':
+                while (!elevator.get(i).isFull() && !floor.get(currFloor).down.isEmpty()) {
+                    elevator.get(i).add(floor.get(currFloor).down.remove());
+                }
         }
-        else {
-            toRemove = new ArrayList<>();
-        }
-
-        //  Pick up with empty elevator (Also change direction if needed)
-        for (Passenger passenger : floor.get(currFloor)) {
-            if (elevator.get(i).isFull()) {
-                break;
-            }
-            //  Verify elevator is going in the correct direction for each passenger
-            if (passenger.direction(currFloor) == elevDirection) {
-                //  Add passenger to elevator
-                elevator.get(i).add(passenger);
-
-                //  Remove passenger from floor list
-                toRemove.add(passenger);
-            }
-            //  Set direction to first passenger's on current floor
-            else if (elevator.get(i).isEmpty()) {
-                //  Add passenger to elevator
-                elevator.get(i).add(passenger);
-
-                //  Change direction of elevator to match first passenger
-                elevator.get(i).setDirection(passenger.direction(currFloor));
-                //  Update local direction variable
-                elevDirection = elevator.get(i).getDirection();
-
-                //  Remove passenger from floor list
-                toRemove.add(passenger);
-            }
-        }
-
-        floor.get(currFloor).removeAll(toRemove);
     }
 
     /**
@@ -530,18 +509,31 @@ public class Simulation {
      * @return floor where the nearest passenger is waiting
      */
     private int getNearestPassenger (int currFloor, char elevDirection) {
+
         List<Integer> floorsWithPassengers;
 
-        if (getStructures().matches("linked")) {
+        if (getStructures().equalsIgnoreCase("linked")) {
             floorsWithPassengers = new LinkedList<>();
         }
         else {
             floorsWithPassengers = new ArrayList<>();
         }
-        for (int j = 0; j < getFloors(); j++) {
-            if (!floor.get(j).isEmpty()) {
-                floorsWithPassengers.add(j);
-            }
+
+        switch(elevDirection){
+            case 'U':
+                for(int j = 0; j < getFloors(); j++){
+                    if(!floor.get(j).up.isEmpty()){
+                        floorsWithPassengers.add(j);
+                    }
+                }
+                break;
+            case 'D':
+                for(int j = 0; j < getFloors(); j++){
+                    if(!floor.get(j).down.isEmpty()){
+                        floorsWithPassengers.add(j);
+                    }
+                }
+                break;
         }
 
         if (floorsWithPassengers.isEmpty()) {
@@ -649,6 +641,31 @@ public class Simulation {
         this.structures = structures;
     }
 
+    private class Floor{
+        private final Queue<Passenger> up;
+        private final Queue<Passenger> down;
+
+        Floor(){
+            if(getStructures().equalsIgnoreCase("linked")){
+                up = new LinkedList<>();
+                down = new LinkedList<>();
+            }
+            else {
+                up = new ArrayDeque<>();
+                down = new ArrayDeque<>();
+            }
+        }
+
+        public void add(Passenger p){
+            //  Add passenger to correct stack
+            if(p.direction() == 'U'){
+                up.add(p);
+            }
+            else{
+                down.add(p);
+            }
+        }
+    }
     /**
      * Simulation.Passenger class used to represent individual passengers
      * created on each floor during each tick. Destination floor
@@ -657,9 +674,19 @@ public class Simulation {
     private static class Passenger {
         private final int destFloor;
         private final long arrivalTime;
+        private final char direction;
+        public int startFloor;
 
-        public Passenger (int dest) {
+        public Passenger (int dest, int start) {
             destFloor = dest;
+            startFloor = start;
+            if(dest > start){
+                direction = 'U';
+            }
+            else{
+                direction = 'D';
+            }
+
             arrivalTime = System.currentTimeMillis();
         }
 
@@ -672,14 +699,10 @@ public class Simulation {
          * passenger is going up or down to determine
          * if they are allowed to get on the elevator
          *
-         * @param currFloor floor the passenger is on
          * @return 'U' for Up, 'D' for Down
          */
-        public char direction (int currFloor) {
-            if (this.destFloor > currFloor) {
-                return 'U';
-            }
-            return 'D';
+        public char direction () {
+            return direction;
         }
     }
 
@@ -698,7 +721,7 @@ public class Simulation {
          *  properties file and starts out on bottom floor
          */
         public Elevator (String structure) {
-            if (structure.matches("linked")) {
+            if (structure.equalsIgnoreCase("linked")) {
                 passengers = new LinkedList<>();
             }
             else {
@@ -750,7 +773,7 @@ public class Simulation {
          */
         public List<Passenger> arrived (int currentFloor) {
             List<Passenger> arrivals;
-            if (getStructures().matches("linked")) {
+            if (getStructures().equalsIgnoreCase("linked")) {
                 arrivals = new LinkedList<>();
             }
             else {
