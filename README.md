@@ -74,15 +74,15 @@
         -   elevatorMovement(int, int, char) : void         "Moves the elevator to the next best floor"
 
     -   Simulation.Floor
-        -   up : Queue<Passenger>
-        -   down: Queue<Passenger>      
+        -   up : Queue<Passenger> {final}
+        -   down: Queue<Passenger> {final}
     ---------------------------------
         +   add(Passenger) : void       "Adds the passenger to the proper Queue for the direction they are going"
 
     -   Simuation.Elevator:
         - currentFloor : int
         - direction : char
-        - passengers : List <Passenger>
+        - passengers : List <Passenger> {final}
     ---------------------------------
         +   atDestination(int) : boolean        "Returns true if any passengers can be dropped off at the floor"
         +   dropOff(List<Passenger>) : void     "Drops off all passengers in the List and adds their total time to timeToDest list"
@@ -93,8 +93,10 @@
         -   moveDown(int) : void                "Moves the elevator down and sets the direction"
 
     -   Simulation.Passenger:
-        -   destFloor : int
-        -   arrivalTime : long
+        -   startFloor : int
+        -   destFloor : int {final}
+        -   arrivalTime : long {final}
+        -   direction : char {final}
     --------------------------------
         +   getArrivalTime() : long     "Returns the time the passenger was created"
         +   direction(int) : char       "Returns the direction the passenger needs to go to get to their destination" 
