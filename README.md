@@ -74,8 +74,13 @@
         -   elevatorMovement(int, int, char) : void         "Moves the elevator to the next best floor"
 
     -   Simulation.Floor
+<<<<<<< HEAD
         -   up : Queue<Passenger> {final}
         -   down: Queue<Passenger> {final}
+=======
+        -   up : Queue<Passenger>
+        -   down: Queue<Passenger>      
+>>>>>>> newBranch
     ---------------------------------
         +   add(Passenger) : void       "Adds the passenger to the proper Queue for the direction they are going"
 
