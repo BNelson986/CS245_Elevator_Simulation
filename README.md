@@ -60,7 +60,7 @@
         -   floors : int
         -   timeToDest : List<Long>
         -   elevator : List<Elevator>
-        -   floor : List<List<Passenger>>
+        -   floor : List<Floor>
     ---------------------------------
         +   readFile(String) : Properties                   "Reads file specified by user and returns a properties object of that file"
         +   startSim() : void                               "Starts the simulation"
@@ -72,6 +72,12 @@
         -   hasPickUps(int, char) : boolean                 "Determines if a floor has a passenger that is able to be picked up"
         -   pickUp(int, int, char) : void                   "Picks up all valid passengers from the current floor"
         -   elevatorMovement(int, int, char) : void         "Moves the elevator to the next best floor"
+
+    -   Simulation.Floor
+        -   up : Queue<Passenger>
+        -   down: Queue<Passenger>      
+    ---------------------------------
+        +   add(Passenger) : void       "Adds the passenger to the proper Queue for the direction they are going"
 
     -   Simuation.Elevator:
         - currentFloor : int
