@@ -1,6 +1,11 @@
 # CS245 Elevator Simulation
 
 # To run simulation:
+    1) 
+    Get to src folder:
+        execute - "cd CS245_Elevator_Simulation/src"
+
+    2)
     Without a properties file: 
         execute - "java Main"
     
@@ -74,13 +79,8 @@
         -   elevatorMovement(int, int, char) : void         "Moves the elevator to the next best floor"
 
     -   Simulation.Floor
-<<<<<<< HEAD
         -   up : Queue<Passenger> {final}
         -   down: Queue<Passenger> {final}
-=======
-        -   up : Queue<Passenger>
-        -   down: Queue<Passenger>      
->>>>>>> newBranch
     ---------------------------------
         +   add(Passenger) : void       "Adds the passenger to the proper Queue for the direction they are going"
 
