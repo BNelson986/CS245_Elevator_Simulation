@@ -32,8 +32,11 @@ public class Simulation {
      */
 
     /**
-     * Automatically begins the elevator simulation
-     * using values from properties file
+     * Sets all properties to those specified
+     * in the properties file provided by user.
+     * If any property is left out, the default
+     * value will be used instead and print of the
+     * missing property will be displayed.
      *
      * @param fileName name of properties file to use
      */
@@ -107,8 +110,8 @@ public class Simulation {
     }
 
     /**
-     * Automatically begins the elevator simulation
-     * using the default values
+     * Default constructor to be used in 
+     * when no property file is provided
      */
     Simulation () {
     }
@@ -120,10 +123,11 @@ public class Simulation {
      */
 
     /**
-     * Gathers the properties file and returns it for the user
+     * Gathers the properties file and returns a
+     * Properties object for the user to manipulate
      *
      * @param fileName name of properties file to read
-     * @return properties file
+     * @return properties object of fileName
      */
     public Properties readFile (String fileName) throws IOException {
         FileInputStream inFile;
@@ -144,10 +148,9 @@ public class Simulation {
     }
 
     /**
-     * Starts simulation of elevator by first
-     * attempting to read a properties file,
-     * if there is not one will continue on
-     * with simulation using default values.
+     * Main driver of the simulation,
+     * contains main loop and facilitates
+     * all necessary actions.
      */
     public void startSim () {
         //  Set pseudo-random seed for generator
@@ -258,12 +261,13 @@ public class Simulation {
                     elevatorMovement(i, currFloor, elevDirection);
                 }
 
-                /*
-                 ****************************************************************
-                 *  UNCOMMENT THE FOLLOWING LINES TO TEST PROPER FUNCTIONALITY  *
-                 ****************************************************************
-                 */
-            /*
+           /*
+            ****************************************************************
+            *  UNCOMMENT THE FOLLOWING LINES TO VERIFY PROPER FUNCTIONALITY  *
+            ****************************************************************
+            */
+           
+	      	/*
                 for(int e = 0 ; e < getElevators(); e++) {
                     if (ticksLeft % 25 == 0) {
                         System.out.println("Elevator: " + e + " currently has " + elevator.get(e).passengers.size() + " passengers.");
@@ -301,10 +305,12 @@ public class Simulation {
         }
 
         //  UNCOMMENT TO SEE TOTAL PASSENGERS SERVICED
-
-        int totalPassengers = timeToDest.size();
+	/*
+        
+	int totalPassengers = timeToDest.size();
         System.out.println("Total passengers serviced by " + elevators + " elevator(s): " + totalPassengers);
-
+	
+	*/
 
         //  Perform data analysis/collection after successful execution
         long avgTime = getAvgTimeToDest(timeToDest);
@@ -318,7 +324,7 @@ public class Simulation {
     }
 
     /**
-     * Get the average time taken for a passenger to
+     * Gets the average time taken for a passenger to
      * reach their destination
      *
      * @param times List of passenger travel times
